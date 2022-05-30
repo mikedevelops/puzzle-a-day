@@ -1,0 +1,67 @@
+import { Color, green } from "./color";
+import { Vec, vec } from "./vec";
+import { CTX } from "./canvas";
+import { Ray } from "./ray";
+import { DEBUG } from "./settings";
+
+export function createDebugger(ctx: CTX): Debugger {
+  return new Debugger(ctx);
+}
+
+interface DeferDraw {
+  fn: () => void;
+}
+
+interface DebugValue {
+  toString(): string;
+}
+
+class Debugger {
+  private y = 0;
+  private padding = vec(16, 28);
+  private size = 16;
+  private style = `${this.size}px monospace`;
+
+  private queue = new Set<DeferDraw>();
+
+  constructor(private ctx: CTX) {}
+
+  private enqueue(dd: DeferDraw): void {
+    this.queue.add(dd);
+  }
+
+  public print(
+    label: string,
+    value: DebugValue,
+    color: string = green()
+  ): void {
+    this.enqueue({
+      fn: () => {
+        this.ctx.save();
+        this.ctx.fillStyle = color;
+        this.ctx.fillText(
+          `${label}: ${value.toString()}`,
+          this.padding.x,
+          this.padding.y + this.y
+        );
+        this.ctx.restore();
+      },
+    });
+  }
+
+  public draw(): void {
+    if (!DEBUG) {
+      return;
+    }
+
+    for (const { fn } of this.queue) {
+      this.ctx.save();
+      this.ctx.font = this.style;
+      fn();
+      this.y += this.size;
+      this.ctx.restore();
+    }
+    this.queue.clear();
+    this.y = 0;
+  }
+}
