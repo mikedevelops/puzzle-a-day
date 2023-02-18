@@ -1,8 +1,10 @@
-import { Color, green } from "./color";
-import { Vec, vec } from "./vec";
+import { green } from "./color";
+import { vec } from "./units/vec";
 import { CTX } from "./canvas";
-import { Ray } from "./ray";
 import { DEBUG } from "./settings";
+import { mean } from "./maths";
+
+const FONT_SIZE = 12;
 
 export function createDebugger(ctx: CTX): Debugger {
   return new Debugger(ctx);
@@ -16,13 +18,20 @@ interface DebugValue {
   toString(): string;
 }
 
+interface SampleCache {
+  size: number;
+  values: number[];
+  lastSampleValue: number;
+}
+
 class Debugger {
   private y = 0;
   private padding = vec(16, 28);
-  private size = 16;
+  private size = FONT_SIZE;
   private style = `${this.size}px monospace`;
 
   private queue = new Set<DeferDraw>();
+  private sampleCache = new Map<string, SampleCache>();
 
   constructor(private ctx: CTX) {}
 
@@ -46,6 +55,43 @@ class Debugger {
         );
         this.ctx.restore();
       },
+    });
+  }
+
+  public sample(
+    label: string,
+    value: number,
+    size: number,
+    transform = (value: number) => value.toString(),
+    color: string = green()
+  ): void {
+    if (size <= 1) {
+      throw new Error("Cannot sample 1 value!");
+    }
+
+    const cache = this.sampleCache.get(label);
+    if (!cache) {
+      this.sampleCache.set(label, {
+        size: size,
+        values: [value],
+        lastSampleValue: 0,
+      });
+      return;
+    }
+
+    let values = [...cache.values, value];
+    let lastSampleValue = cache.lastSampleValue;
+    if (values.length === cache.size) {
+      values = [];
+      lastSampleValue = mean(cache.values);
+    }
+
+    this.print(label, transform(lastSampleValue), color);
+
+    this.sampleCache.set(label, {
+      size,
+      values,
+      lastSampleValue,
     });
   }
 

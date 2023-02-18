@@ -1,0 +1,23 @@
+import { createInputManager } from "./input/input";
+import { createLogger } from "./logger";
+import { createRenderer } from "./renderer/renderer";
+import { createDebugger } from "./debugger";
+import { createCollisionManager } from "./collision";
+import { createCamera } from "./camera/camera";
+import { createSpriteManager } from "./sprites/sprites";
+import { createEventManager } from "./events/EventManager";
+import { createUIManager } from "./ui/ui";
+import { createNotifications } from "./notifications/notifications";
+import { createSceneManager } from "./scenes/sceneManager";
+
+export const renderer = createRenderer();
+export const camera = createCamera(renderer);
+export const debug = createDebugger(renderer.ctx);
+export const collision = createCollisionManager();
+export const input = createInputManager(renderer.canvas, camera);
+export const logger = createLogger();
+export const sprites = createSpriteManager();
+export const events = createEventManager();
+export const ui = createUIManager();
+export const notifications = createNotifications();
+export const scenes = createSceneManager();

@@ -4,7 +4,8 @@
   "description": "",
   "main": "index.js",
   "scripts": {
-    "start": "parcel src/index.html",
+    "town-builder": "parcel src/town-builder/index.html",
+    "puzzle-a-day": "parcel src/puzzle-a-day/index.html",
     "watch": "tsc -w --noEmit"
   },
   "keywords": [],

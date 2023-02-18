@@ -1,9 +1,9 @@
-import type { DisplayObject } from "./displayObject";
-import { vec, Vec } from "./vec";
+import { vec, Vec } from "./units/vec";
 import { DEBUG_COLLIDERS } from "./settings";
-import { collision, logger, renderer } from "../grass-sim/global";
+import { collision, logger, renderer } from "./global";
 import { Color } from "./color";
-import { DEBUG_LAYER } from "./renderer";
+import { DEBUG_LAYER } from "./renderer/renderer";
+import { GameObject } from "./objects/gameObject";
 
 export function createCollider(path: Vec[], offset = vec()): Collider {
   const c = new Collider(path, offset);
@@ -12,7 +12,7 @@ export function createCollider(path: Vec[], offset = vec()): Collider {
 }
 
 export class Collider {
-  public obj: DisplayObject | null = null;
+  public obj: GameObject | null = null;
   private enabled = false;
   private worldPathCache: Vec[] | null = null;
 
@@ -37,11 +37,15 @@ export class Collider {
 
   public debug(): void {
     if (DEBUG_COLLIDERS && this.isEnabled()) {
-      renderer.line(this.getWorldPath(), Color.blue(), DEBUG_LAYER);
+      const p = this.getWorldPath();
+      if (p) {
+        renderer.path(p, Color.green(), 4, DEBUG_LAYER);
+      }
     }
   }
 
   public getWorldPath(): Vec[] {
+    /*
     if (!this.worldPathCache) {
       this.worldPathCache = this.path.map((p) =>
         p.addv(this.obj?.getWorldPos().addv(this.offset) ?? vec())
@@ -49,6 +53,13 @@ export class Collider {
     }
 
     return this.worldPathCache;
+     */
+
+    const path = this.path.map((p) =>
+      p.addv(this.obj?.getWorldPos().addv(this.offset) ?? vec())
+    );
+
+    return path;
   }
 
   public destroy(): void {

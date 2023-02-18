@@ -1,17 +1,18 @@
-import { vec, Vec } from "./vec";
-import { DEBUG_GRID_NODES, GRID_UNIT } from "./settings";
-import { camera, input, renderer } from "../grass-sim/global";
-import { Color, red, white } from "./color";
-import { DEBUG_LAYER } from "./renderer";
-import { DisplayObject } from "./displayObject";
+import { vec, Vec } from "./units/vec";
+import { DEBUG_GRID, GRID_UNIT, GRID_WIDTH } from "./settings";
+import { debug, input, renderer } from "./global";
+import { Color } from "./color";
+import { DEBUG_LAYER } from "./renderer/renderer";
+import { GameObject } from "./objects/gameObject";
 
 export function createGrid(
   width: number,
   height = width,
   pos: Vec = vec(),
-  size = GRID_UNIT
+  size = GRID_UNIT,
+  factory: NodeFactory = (local, world) => ({ local, world })
 ): Grid {
-  return new Grid(width, height, pos, size);
+  return new Grid(width, height, pos, size, factory);
 }
 
 export interface Node {
@@ -19,87 +20,118 @@ export interface Node {
   world: Vec;
 }
 
-export class Grid {
-  private nodes: Node[][] = [];
+export interface GridNode {
+  local: Vec;
+  world: Vec;
+}
+
+export type NodeFactory = (local: Vec, world: Vec) => GridNode;
+
+let id = 0;
+
+export class Grid extends GameObject {
+  private nodes: GridNode[][] = [];
 
   constructor(
     public width: number,
     public height: number,
     public pos: Vec,
-    public size: number
+    public size: number,
+    private factory: NodeFactory
   ) {
-    for (let x = 0; x < width; x++) {
+    super(id++, pos);
+    this.init();
+  }
+
+  protected init() {
+    for (let x = 0; x < this.width; x++) {
       if (!this.nodes[x]) this.nodes[x] = [];
-      for (let y = 0; y < height; y++) {
+      for (let y = 0; y < this.height; y++) {
         const local = vec(x, y);
-        this.nodes[x][y] = {
-          local: local,
-          world: this.cartToIso(this.localToWorld(local)),
-        };
+        this.nodes[x][y] = this.factory(local, this.localToWorld(local));
       }
     }
   }
 
-  public getWorldPos(e: Vec | DisplayObject): Vec {
-    const p = e instanceof DisplayObject ? e.pos : e;
-    return this.localToWorld(this.cartToIso(p.addv(this.pos)));
+  public getName(): string {
+    return "GRID";
   }
 
-  private localToWorld(v: Vec): Vec {
-    return v.multiply(this.size);
+  public localToWorld(p: Vec): Vec {
+    return Grid.cartToIso(p.addv(this.pos)).multiply(this.size);
   }
 
-  public debug(): void {
-    if (!DEBUG_GRID_NODES) {
-      return;
-    }
-
-    this.forEach((local, world) => {
-      renderer.fillText(
-        local.toString(),
-        world.add(0, 24),
-        Color.red(),
-        DEBUG_LAYER
-      );
-      renderer.fillText(
-        world.addv(camera.getOffset()).toString(),
-        world.add(0, 36),
-        Color.red(),
-        DEBUG_LAYER
-      );
-      renderer.fillRect(world, 8, 8, Color.red(), DEBUG_LAYER);
-    });
-
-    const snapped = this.snapToGrid(Vec.from(input.pointer));
-
-    if (snapped) {
-      const { world } = snapped;
-      renderer.fillRect(world, 8, 8, Color.white(), DEBUG_LAYER);
-    }
-
-    renderer.line(
+  public draw(): void {
+    renderer.path(
       [
-        this.getWorldPos(vec()).sub(0, this.size / 2),
-        this.getWorldPos(vec(this.width, 0)).sub(0, this.size / 2),
-        this.getWorldPos(vec(this.width, this.height)).sub(0, this.size / 2),
-        this.getWorldPos(vec(0, this.height)).sub(0, this.size / 2),
-        this.getWorldPos(vec()).sub(0, this.size / 2),
+        this.localToWorld(vec()).sub(0, this.size / 2),
+        this.localToWorld(vec(this.width, 0)).sub(0, this.size / 2),
+        this.localToWorld(vec(this.width, this.height)).sub(0, this.size / 2),
+        this.localToWorld(vec(0, this.height)).sub(0, this.size / 2),
+        this.localToWorld(vec()).sub(0, this.size / 2),
       ],
-      Color.white(),
+      Color.red(),
+      4,
       DEBUG_LAYER
     );
   }
 
-  public snapToGrid(v: Vec): Node | null {
-    const local = this.isoToCart(v).divide(this.size).round();
+  public debug(): void {
+    if (!DEBUG_GRID) {
+      return;
+    }
 
-    if (!this.contains(local)) {
+    const pos = this.worldToLocalSnap(input.pointer.getWorldPos());
+
+    debug.print("GRID", !pos ? "OOB" : pos.local.toString());
+
+    this.forEach(({ local, world }) => {
+      renderer.drawISoRect(
+        // world.add(0, this.size / 2),
+        world,
+        this.size,
+        this.size,
+        Color.red(0.25),
+        false,
+        vec(0, -this.size / 2),
+        2,
+        DEBUG_LAYER
+      );
+      renderer.fillRect(world, this.size / 4, this.size / 4, Color.green(0.5));
+      renderer.fillText(
+        `${local.x},${local.y}`,
+        world,
+        Color.red(),
+        this.size,
+        this.size
+      );
+    });
+
+    const snapped = this.worldToLocalSnap(
+      Vec.from(input.pointer.getWorldPos())
+    );
+
+    if (snapped) {
+      const { world } = snapped;
+      renderer.fillRect(world, 8, 8, Color.white(), vec(), DEBUG_LAYER);
+    }
+  }
+
+  public worldToLocalUnsafe(worldPos: Vec): Vec {
+    const snap = this.worldToLocalSnap(worldPos, false);
+    return snap!.local;
+  }
+
+  public worldToLocalSnap(v: Vec, safe = true): Node | null {
+    const local = Grid.isoToCart(v).divide(this.size).round();
+
+    if (safe && !this.contains(local)) {
       return null;
     }
 
     return {
       local: local,
-      world: this.localToWorld(this.cartToIso(local)),
+      world: this.localToWorld(local),
     };
   }
 
@@ -112,7 +144,7 @@ export class Grid {
       cy = false;
 
     // TODO: optimise
-    this.forEach((local) => {
+    this.forEach(({ local }) => {
       if (local.x == p.x) cx = true;
       if (local.y == p.y) cy = true;
       if (cx && cy) return;
@@ -121,25 +153,53 @@ export class Grid {
     return cx && cy;
   }
 
-  public forEach(cb: (local: Vec, world: Vec) => void): void {
+  public forEach(cb: (node: GridNode) => void): void {
     this.nodes.forEach((row) => {
-      row.forEach(({ local, world }) => {
-        cb(local, world);
+      row.forEach((node) => {
+        cb(node);
       });
     });
   }
 
-  private cartToIso(c: Vec): Vec {
+  static cartToIso(c: Vec): Vec {
     const i = Vec.from(c);
     i.x = c.x - c.y;
     i.y = (c.x + c.y) / 2;
     return i;
   }
 
-  private isoToCart(i: Vec): Vec {
+  static isoToCart(i: Vec): Vec {
     const c = Vec.from(i);
     c.x = (2 * i.y + i.x) / 2;
     c.y = (2 * i.y - i.x) / 2;
     return c;
   }
+
+  public add(o: GameObject, localPos = vec()) {
+    super.add(o, this.localToWorld(localPos));
+  }
+
+  // public getPathFindingGrid(): boolean[][] {
+  //   const grid: boolean[][] = [];
+  //   const constructionMatrix = construction.getConstructionMatrix();
+  //
+  //   this.forEach((node) => {
+  //     const { local: pos } = node;
+  //     if (grid[pos.x] === undefined) {
+  //       grid[pos.x] = [];
+  //     }
+  //
+  //     let walkable = true;
+  //
+  //     if (
+  //       constructionMatrix[pos.x] &&
+  //       constructionMatrix[pos.x][pos.y] !== null
+  //     ) {
+  //       walkable = false;
+  //     }
+  //
+  //     grid[pos.x][pos.y] = walkable;
+  //   });
+  //   return grid;
+  // }
 }

@@ -1,9 +1,9 @@
 import { Collider } from "./collider";
-import { Vec } from "./vec";
-import { DisplayObject } from "./displayObject";
+import { Vec } from "./units/vec";
 import { CTX, getCanvas } from "./canvas";
-import { camera, renderer, debug } from "../grass-sim/global";
-import { DEBUG_COLLIDERS } from "./settings";
+import { camera, renderer, debug } from "./global";
+import { DEBUG_COLLIDERS, DEBUG_COLLISION } from "./settings";
+import { GameObject } from "./objects/gameObject";
 
 export function createCollisionManager(): CollisionManager {
   return new CollisionManager();
@@ -15,7 +15,9 @@ export class CollisionManager {
   private cache: Uint8ClampedArray | null = null;
 
   constructor() {
-    const cvs = getCanvas("collision");
+    const cvs = getCanvas("collision", {
+      willReadFrequently: true,
+    });
     cvs.el.width = renderer.canvas.width;
     cvs.el.height = renderer.canvas.height;
     this.ctx = cvs.ctx;
@@ -29,20 +31,28 @@ export class CollisionManager {
     this.colliders.delete(c);
   }
 
-  public getObjAt(p: Vec): DisplayObject[] {
+  public getObjAt(p: Vec): GameObject[] {
     const start = Date.now();
     const offset = camera.getOffset();
-    const objs: DisplayObject[] = [];
+    const objs: GameObject[] = [];
 
     for (const c of this.colliders) {
-      if (!c.obj || !c.isEnabled()) {
+      if (!c.obj) {
         continue;
       }
 
       /**
        * Abstract this collision detection....
        */
-      const path = c.getWorldPath().map((p) => p.addv(offset));
+      const path = c.getWorldPath()?.map((p) => p.addv(offset));
+      if (path.every((p) => !renderer.willDraw(p))) {
+        c.disable();
+      }
+
+      if (!c.isEnabled()) {
+        continue;
+      }
+
       this.ctx.clearRect(0, 0, this.ctx.canvas.width, this.ctx.canvas.height);
 
       this.ctx.beginPath();
@@ -68,13 +78,21 @@ export class CollisionManager {
       this.ctx.fillRect(p.x, p.y, 4, 4);
     }
 
-    debug.print("getObjAt", `${(Date.now() - start).toFixed(2)}ms`);
+    if (DEBUG_COLLISION) {
+      debug.sample("COLLISION RESOLVED", Date.now() - start, 30, (value) => {
+        return value.toFixed(2) + "ms";
+      });
+    }
+
     return objs;
   }
 
   public debug() {
     if (DEBUG_COLLIDERS) {
-      debug.print("colliders", this.colliders.size);
+      debug.print(
+        "active colliders",
+        [...this.colliders].filter((c) => c.isEnabled()).length
+      );
     }
   }
 }

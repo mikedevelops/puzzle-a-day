@@ -1,6 +1,6 @@
 import { Color } from "./color";
 import { CTX } from "./canvas";
-import { Vec } from "./vec";
+import { Vec } from "./units/vec";
 
 const tintCache = new Map<CTX, Record<string, ImageData>>();
 

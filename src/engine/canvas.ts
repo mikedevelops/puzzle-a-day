@@ -5,21 +5,28 @@ export interface Canvas {
   ctx: CTX;
 }
 
-export function getCanvas(id: string = "stage"): Canvas {
+export function getCanvas(
+  id: string = "stage",
+  settings: CanvasRenderingContext2DSettings = {}
+): Canvas {
   const c = document.getElementById(id) as HTMLCanvasElement;
   if (!c) {
     throw new Error(`Could not find #${id} element`);
   }
-  const ctx = c.getContext("2d");
+  const ctx = c.getContext("2d", settings);
   if (!ctx) {
     throw new Error("Could not get 2d context");
   }
   return { el: c, ctx };
 }
 
-export function createCanvas(width: number, height: number): Canvas {
+export function createCanvas(
+  width: number,
+  height: number,
+  settings: CanvasRenderingContext2DSettings = {}
+): Canvas {
   const cvs = document.createElement("canvas");
-  const ctx = cvs.getContext("2d");
+  const ctx = cvs.getContext("2d", settings);
 
   if (!ctx) {
     throw new Error("Could not get 2d context");
