@@ -26,10 +26,9 @@ export abstract class DisplayObject extends GameObject {
       const p = this.getWorldPos();
       renderer.fillRect(p, 8, 8, Color.green(), vec(), DEBUG_LAYER);
       renderer.fillText(
-        this.getGrid().worldToLocalUnsafe(p).toString(),
-        // p.toString(),
+        this.getGrid().worldToLocalUnsafe(p).toString() + "\n" + p,
         p,
-        Color.green(),
+        Color.white(),
         1000,
         DEBUG_LAYER
       );

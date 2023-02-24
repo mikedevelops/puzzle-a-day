@@ -4,6 +4,7 @@ import { input, scenes } from "../../engine/global";
 import { KeyInput } from "../../engine/input/input";
 import { Direction, Vec, vec } from "../../engine/units/vec";
 import { Color } from "../../engine/color";
+import { pieceFactory } from "../pieces/piece-factory";
 
 export function createGameState(): GameState {
   return new GameState();
@@ -43,7 +44,7 @@ class GameState {
     };
 
     localStorage.setItem(this.getSaveStateKey(), JSON.stringify(state));
-    console.log("saved scene!");
+    console.log("saved scene!", state);
   }
 
   public loadState(): void {
@@ -58,12 +59,10 @@ class GameState {
     const state: SerialisedGameState = JSON.parse(serialisedState);
 
     for (const p of state.pieces) {
-      const piece = new Piece(
+      const piece = pieceFactory.get(p.name)!(
         vec(),
-        p.shape,
-        new Color(p.color.r, p.color.g, p.color.b, p.color.a),
         Vec.deserialiseDirection(Vec.from(p.direction)),
-        Vec.from(p.anchor)
+        p.anchor
       );
       PieceManager.addPieceToGrid(piece, Vec.from(p.localPos));
     }

@@ -50,15 +50,22 @@ export class SpriteManager {
 
     const unit = SPRITE_SIZE * SPRITE_SCALE;
     // TODO: this is all hardcoded, use sprite meta, eventually, also this isn't engine code...
-    this.sliceSprite(sheet, rect(0, 0, unit, unit), prefix);
-    this.sliceSprite(sheet, rect(unit, 0, unit * 1.5, unit), prefix);
-    this.sliceSprite(sheet, rect(unit * 3, 0, unit * 1.5, unit), prefix);
-    this.sliceSprite(sheet, rect(unit * 5, 0, unit * 2, unit), prefix);
-    this.sliceSprite(
-      sheet,
-      rect(unit * 7, unit / 2, unit / 2, unit / 2),
-      prefix
-    );
+    this.sliceSprite(sheet, rect(0, 0, unit * 2, unit * 2), prefix);
+    this.sliceSprite(sheet, rect(0, unit * 2, unit * 2, unit * 2), prefix);
+    this.sliceSprite(sheet, rect(0, unit * 4, unit * 2.5, unit * 2), prefix);
+    this.sliceSprite(sheet, rect(0, unit * 6, unit * 2, unit * 2), prefix);
+    this.sliceSprite(sheet, rect(0, unit * 8, unit * 2, unit * 2), prefix);
+    this.sliceSprite(sheet, rect(0, unit * 10, unit * 2.5, unit * 2), prefix);
+    this.sliceSprite(sheet, rect(0, unit * 12, unit * 2.5, unit * 2), prefix);
+    this.sliceSprite(sheet, rect(0, unit * 14, unit * 2.5, unit * 2), prefix);
+    // this.sliceSprite(sheet, rect(unit, 0, unit * 1.5, unit), prefix);
+    // this.sliceSprite(sheet, rect(unit * 3, 0, unit * 1.5, unit), prefix);
+    // this.sliceSprite(sheet, rect(unit * 5, 0, unit * 2, unit), prefix);
+    // this.sliceSprite(
+    //   sheet,
+    //   rect(unit * 7, unit / 2, unit / 2, unit / 2),
+    //   prefix
+    // );
   }
 
   private sliceSprite(
@@ -117,16 +124,16 @@ export class SpriteManager {
         cvs.ctx.drawImage(img, 0, 0, sw, sh);
         cvs.el.setAttribute("style", "border: 1px solid red");
 
-        // if (DEBUG_RESOURCES) {
-        //   const dcvs = cvs.el.cloneNode() as HTMLCanvasElement;
-        //   const dctx = dcvs.getContext("2d")!; // TODO: (types) don't be lazy
-        //   const data = cvs.ctx.getImageData(0, 0, cvs.el.width, cvs.el.height);
-        //   const catalogue = document.getElementById("resource-catalogue")!; // TODO: (types) don't be lazy
-        //   catalogue.appendChild(dcvs);
-        //   dctx.putImageData(data, 0, 0);
-        //   dctx.fillStyle = Color.red().toString();
-        //   dctx.fillText(key, 8, 16);
-        // }
+        if (DEBUG_RESOURCES) {
+          // const dcvs = cvs.el.cloneNode() as HTMLCanvasElement;
+          // const dctx = dcvs.getContext("2d")!; // todo: (types) don't be lazy
+          // const data = cvs.ctx.getImageData(0, 0, cvs.el.width, cvs.el.height);
+          // const catalogue = document.getElementById("resource-catalogue")!; // todo: (types) don't be lazy
+          // catalogue.appendChild(dcvs);
+          // dctx.putImageData(data, 0, 0);
+          // dctx.fillStyle = Color.red().toString();
+          // dctx.fillText(key, 8, 16);
+        }
 
         res(cvs.ctx);
       };

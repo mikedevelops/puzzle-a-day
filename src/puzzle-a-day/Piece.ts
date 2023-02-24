@@ -1,13 +1,14 @@
-import { DisplayObject } from "../engine/objects/displayObject";
 import { createId } from "../engine/id/id";
 import { Direction, vec, Vec } from "../engine/units/vec";
 import { Color, SerialisedColor } from "../engine/color";
 import { renderer } from "../engine/global";
-import { DEBUG_PIECES, DRAW_PIECES } from "../engine/settings";
+import { DEBUG_PIECES, DRAW_PIECES, GRID_UNIT } from "../engine/settings";
 import { PieceManager } from "./global";
 import * as matrix from "../engine/units/matrix";
 import { Axis } from "../engine/units/matrix";
-import { DEBUG_LAYER } from "../engine/renderer/renderer";
+import { BACKGROUND_LAYER, DEBUG_LAYER } from "../engine/renderer/renderer";
+import { SpriteObject } from "../engine/objects/spriteObject";
+import { PieceName } from "./pieces/piece-factory";
 
 const id = createId();
 
@@ -47,12 +48,16 @@ function parse(piece: string): PieceNode[][] {
 }
 
 export function createPiece(
+  name: PieceName,
   grid: string,
   anchor: Vec,
   color: Color,
+  sprite: string,
+  offset = vec(),
+  dir = Direction.North,
   pos = vec()
 ): Piece {
-  return new Piece(pos, parse(grid), color, Direction.North, anchor);
+  return new Piece(name, pos, parse(grid), color, dir, anchor, sprite, offset);
 }
 
 export interface SerialisedPiece {
@@ -61,10 +66,11 @@ export interface SerialisedPiece {
   direction: Vec;
   color: SerialisedColor;
   anchor: Vec;
+  name: PieceName;
 }
 
-export class Piece extends DisplayObject {
-  public originOffsetLocal = vec();
+export class Piece extends SpriteObject {
+  private anchor = vec();
 
   private needsUpdate = false;
 
@@ -73,16 +79,25 @@ export class Piece extends DisplayObject {
   }
 
   constructor(
+    private name: PieceName,
     pos: Vec,
     public shape: PieceNode[][],
     private color: Color,
     public direction: Direction = Direction.North,
-    public anchor = vec(0, 0)
+    anchor = vec(0, 0),
+    sprite: string,
+    offset: Vec
   ) {
-    super(id(), pos);
+    super(id(), pos, sprite, offset);
+    this.setAnchor(anchor);
   }
 
   public setPos(worldPos: Vec): void {
+    console.log(
+      "set pos",
+      worldPos,
+      this.getGrid().worldToLocalUnsafe(worldPos)
+    );
     if (worldPos.equalsv(this.pos)) {
       console.warn("skipping piece pos update");
       return;
@@ -155,23 +170,15 @@ export class Piece extends DisplayObject {
       return;
     }
 
-    const grid = this.getGrid();
-    const size = grid.size;
-    this.forEach((p, occupied) => {
-      if (!occupied) {
-        return;
-      }
+    super.draw();
+  }
 
-      const pos = grid.localToWorld(p).addv(this.getWorldPos());
-      renderer.drawISoRect(
-        pos,
-        size,
-        size,
-        this.color,
-        occupied,
-        vec(0, -size / 2)
-      );
-    });
+  public setAnchor(pos: Vec): void {
+    this.anchor = pos;
+  }
+
+  public getAnchor(): Vec {
+    return this.anchor;
   }
 
   public debug(): void {
@@ -179,9 +186,13 @@ export class Piece extends DisplayObject {
       return;
     }
 
+    super.debug();
+
     const grid = this.getGrid();
     const size = grid.size;
-    const anchor = grid.localToWorld(this.anchor).addv(this.getWorldPos());
+    const wp = this.getWorldPos();
+    const anchor = grid.localToWorld(this.anchor).addv(wp);
+
     renderer.drawISoRect(
       anchor,
       size / 3,
@@ -194,19 +205,21 @@ export class Piece extends DisplayObject {
     );
 
     this.forEach((p, occupied) => {
-      const pos = grid.localToWorld(p).addv(this.getWorldPos());
+      const pos = grid.localToWorld(p).addv(wp);
       renderer.drawISoRect(
         pos,
         size,
         size,
         this.color,
-        false,
-        vec(0, -size / 2)
+        occupied,
+        vec(0, -size / 2),
+        4,
+        BACKGROUND_LAYER
       );
     });
   }
 
-  private serialiseGrid(): PieceNode[][] {
+  private serialiseShape(): PieceNode[][] {
     const grid: PieceNode[][] = [];
     for (let x = 0; x < this.shape.length; x++) {
       if (!grid[x]) grid[x] = [];
@@ -236,10 +249,11 @@ export class Piece extends DisplayObject {
   public serialise(): SerialisedPiece {
     return {
       localPos: this.getGrid().worldToLocalUnsafe(this.pos),
-      shape: this.serialiseGrid(),
+      shape: this.serialiseShape(),
       direction: this.serialiseDirection(),
       color: this.color.serialise(),
       anchor: this.anchor,
+      name: this.name,
     };
   }
 }

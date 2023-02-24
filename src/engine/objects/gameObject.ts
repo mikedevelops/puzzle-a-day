@@ -61,7 +61,7 @@ export abstract class GameObject {
   }
 
   public getWorldPos(): Vec {
-    let p = this.pos.addv(this.offset);
+    let p = this.pos;
 
     if (this.parent) {
       p = p.addv(this.parent.getWorldPos());

@@ -4,6 +4,7 @@ import { debug, input, renderer } from "./global";
 import { Color } from "./color";
 import { DEBUG_LAYER } from "./renderer/renderer";
 import { GameObject } from "./objects/gameObject";
+import { Piece } from "../puzzle-a-day/Piece";
 
 export function createGrid(
   width: number,

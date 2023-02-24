@@ -24,7 +24,6 @@ interface DrawCall {
 export const DEBUG_LAYER = 999;
 export const UI_LAYER = 888;
 export const CURSOR_LAYER = 777;
-export const VILLAGER_LAYER = 700;
 export const DEFAULT_LAYER = 666;
 export const BACKGROUND_LAYER = 555;
 

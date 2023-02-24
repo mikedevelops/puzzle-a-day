@@ -3,7 +3,7 @@ import { Grid } from "../engine/grid";
 import { vec, Vec } from "../engine/units/vec";
 import { renderer } from "../engine/global";
 import { Color } from "../engine/color";
-import { DEBUG_LAYER } from "../engine/renderer/renderer";
+import { BACKGROUND_LAYER, DEBUG_LAYER } from "../engine/renderer/renderer";
 import { DEBUG_PIECE_MANAGER } from "../engine/settings";
 
 export function createPieceManager(): PieceManager {
@@ -57,24 +57,6 @@ export class PieceManager {
     return this.pieceMatrix[pos.local.x][pos.local.y];
   }
 
-  // TODO: remove this, the piece manager should be the public API
-  //  for adding pieces to the underlying grid (which is the scene grid!)
-  //  this way we can determine if a piece is on the grid (i.e. not on the cursor)
-  //  by checking this.pieces
-
-  private getPieceLocalNodes(piece: Piece): Vec[] {
-    const pos = this.getGrid().worldToLocalSnap(piece.pos);
-    if (pos === null) {
-      throw new Error(`Cannot place piece at ${pos}`);
-    }
-    const nodes: Vec[] = [];
-    for (const nodePos of piece.getNodes()) {
-      nodes.push(nodePos.addv(pos.local));
-    }
-
-    return nodes;
-  }
-
   public removePieceFromGrid(piece: Piece): void {
     this.getGrid().forEach((node) => {
       const p = this.pieceMatrix[node.local.x][node.local.y];
@@ -85,24 +67,21 @@ export class PieceManager {
     this.pieces.delete(piece);
   }
 
-  // private getPieceLocalPosWithAnchorOffset(piece: Piece, localPos: Vec): Vec {
-  //   return this.getGrid().worldToLocalSnap(
-  //     this.getGrid().localToWorld(localPos.subv(piece.anchor))
-  //   );
-  // }
-
   public addPieceToGrid(piece: Piece, localPos: Vec) {
     if (this.pieces.has(piece)) {
       this.removePieceFromGrid(piece);
     }
 
-    // TODO: this is unsafe and possible OOB
-    const nodes = this.getPieceLocalNodesAtLocalPos(piece, localPos);
+    console.log("addPieceToGrid", localPos);
+
+    this.getGrid().add(piece, localPos.subv(piece.getAnchor()));
+    const localPiecePos = this.getGrid().worldToLocalUnsafe(piece.pos);
+
+    const nodes = this.getPieceLocalNodesAtLocalPos(piece, localPiecePos);
     for (const node of nodes) {
       this.pieceMatrix[node.x][node.y] = piece;
     }
 
-    this.getGrid().add(piece, localPos.subv(piece.anchor));
     this.pieces.add(piece);
   }
 
@@ -126,15 +105,23 @@ export class PieceManager {
     this.addPieceToGrid(piece, pos.local);
   }
 
-  public getPieceLocalNodesAtLocalPos(piece: Piece, localPos: Vec): Vec[] {
-    const pieceNodes = piece
-      .getNodes()
-      .map((p) => p.addv(localPos).subv(piece.anchor));
+  public updateTempPlacement(piece: Piece, localPos: Vec): void {
+    const pieceNodes = piece.getNodes().map((p) => p.addv(localPos));
     this.debugTempPlacement = pieceNodes.map((p) =>
       this.getGrid()
         .localToWorld(p)
         .sub(0, this.getGrid().size / 2)
     );
+  }
+
+  public getPieceLocalNodesAtLocalPos(piece: Piece, localPos: Vec): Vec[] {
+    const pieceNodes = piece.getNodes().map((p) => p.addv(localPos));
+    this.debugTempPlacement = pieceNodes.map((p) =>
+      this.getGrid()
+        .localToWorld(p)
+        .sub(0, this.getGrid().size / 2)
+    );
+
     return pieceNodes;
   }
 
@@ -172,7 +159,11 @@ export class PieceManager {
         pos,
         this.getGrid().size,
         this.getGrid().size,
-        Color.green(0.75)
+        Color.green(0.75),
+        true,
+        vec(),
+        4,
+        BACKGROUND_LAYER
       );
     }
   }

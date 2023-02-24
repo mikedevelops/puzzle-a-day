@@ -30,20 +30,22 @@ class Cursor extends DisplayObject {
     const grid = PieceManager.getGrid();
     const cursorLocalPos = grid.worldToLocalUnsafe(this.pos);
     const pieceLocalPos = grid.worldToLocalUnsafe(piece.pos);
-    piece.anchor = cursorLocalPos.subv(pieceLocalPos);
-    piece.pos = piece.pos.subv(this.pos);
+
+    piece.setAnchor(cursorLocalPos.subv(pieceLocalPos));
+    piece.setPos(piece.pos.subv(this.pos));
     super.add(piece);
   }
 
   public update(delta: number): void {
     this.pos = input.pointer.getWorldPos();
     const piece = this.getPiece();
+    const cursorPos = PieceManager.getGrid().worldToLocalSnap(this.pos);
+
+    if (!cursorPos) {
+      return;
+    }
 
     if (piece) {
-      PieceManager.getPieceLocalNodesAtLocalPos(
-        piece,
-        this.getGrid().worldToLocalUnsafe(this.pos)
-      );
       switch (input.getKeyDownThisFrame()) {
         case KeyInput.Rotate:
           piece.rotate();
@@ -52,18 +54,14 @@ class Cursor extends DisplayObject {
           piece.flip();
           break;
       }
+
+      PieceManager.updateTempPlacement(piece, cursorPos.local);
     }
 
     if (
       input.isPointerDownThisFrame() &&
       input.pointer.state === PointerState.Primary
     ) {
-      const cursorPos = PieceManager.getGrid().worldToLocalSnap(this.pos);
-
-      if (!cursorPos) {
-        return;
-      }
-
       if (piece) {
         if (!PieceManager.canPlace(piece, cursorPos.local)) {
           console.log("cannot place at: ", cursorPos.local);
@@ -79,6 +77,14 @@ class Cursor extends DisplayObject {
           this.add(pieceOnGrid);
         }
       }
+    }
+  }
+
+  public debug(): void {
+    super.debug();
+    const piece = this.getPiece();
+    if (piece) {
+      piece.debug();
     }
   }
 
