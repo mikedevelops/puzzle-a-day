@@ -16,11 +16,11 @@ export class Rect {
   }
 
   public contains(v: Vec): boolean {
-    if (v.x < this.pos.x || v.x > this.pos.x + this.width) {
+    if (v.x < this.pos.x || v.x > this.pos.x + (this.width - 1)) {
       return false;
     }
 
-    if (v.y < this.pos.y || v.y > this.pos.y + this.height) {
+    if (v.y < this.pos.y || v.y > this.pos.y + (this.height - 1)) {
       return false;
     }
 
@@ -34,6 +34,10 @@ export class Rect {
       this.width * n,
       this.height * n
     );
+  }
+
+  public toString(): string {
+    return `{x:${this.pos.x},y:${this.pos.y},w:${this.width},h:${this.height}}`;
   }
 
   public addv(p: Vec): Rect {

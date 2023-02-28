@@ -56,7 +56,7 @@ export class Renderer {
 
     // TODO: debug code
     this.ctx.save();
-    this.ctx.fillStyle = Color.blue().toString();
+    this.ctx.fillStyle = new Color(21, 50, 67).toString();
     this.ctx.fillRect(0, 0, STAGE_WIDTH, STAGE_HEIGHT);
     this.ctx.restore();
   }
@@ -220,18 +220,18 @@ export class Renderer {
   public renderSprite(
     key: string,
     pos: Vec,
-    tint?: Color,
-    alpha?: number
+    tint = Color.empty(),
+    alpha = 1,
+    layer = DEFAULT_LAYER
   ): void {
     if (!SPRITES_ENABLED) {
       return;
     }
 
-    const z = DEFAULT_LAYER;
     this.queue.add({
       draw: (offset) => {
         const sprite = sprites.get(key);
-        const wp = this.getWorldPos(pos, offset, z);
+        const wp = this.getWorldPos(pos, offset, layer);
 
         if (!sprite) {
           this.ctx.fillStyle = Color.magenta().toString();
@@ -265,7 +265,7 @@ export class Renderer {
         this.ctx.drawImage(cvs, 0, 0, width, height, sp.x, sp.y, width, height);
       },
       y: pos.y,
-      z: z,
+      z: layer,
     });
   }
 

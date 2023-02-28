@@ -98,13 +98,20 @@ export class Grid extends GameObject {
         2,
         DEBUG_LAYER
       );
-      renderer.fillRect(world, this.size / 4, this.size / 4, Color.green(0.5));
+      renderer.fillRect(
+        world,
+        this.size / 4,
+        this.size / 4,
+        Color.green(0.5),
+        vec(),
+        DEBUG_LAYER
+      );
       renderer.fillText(
         `${local.x},${local.y}`,
         world,
         Color.red(),
         this.size,
-        this.size
+        DEBUG_LAYER
       );
     });
 
@@ -179,28 +186,4 @@ export class Grid extends GameObject {
   public add(o: GameObject, localPos = vec()) {
     super.add(o, this.localToWorld(localPos));
   }
-
-  // public getPathFindingGrid(): boolean[][] {
-  //   const grid: boolean[][] = [];
-  //   const constructionMatrix = construction.getConstructionMatrix();
-  //
-  //   this.forEach((node) => {
-  //     const { local: pos } = node;
-  //     if (grid[pos.x] === undefined) {
-  //       grid[pos.x] = [];
-  //     }
-  //
-  //     let walkable = true;
-  //
-  //     if (
-  //       constructionMatrix[pos.x] &&
-  //       constructionMatrix[pos.x][pos.y] !== null
-  //     ) {
-  //       walkable = false;
-  //     }
-  //
-  //     grid[pos.x][pos.y] = walkable;
-  //   });
-  //   return grid;
-  // }
 }

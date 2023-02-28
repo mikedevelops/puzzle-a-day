@@ -120,4 +120,18 @@ export class Vec {
 
     throw new Error("unable to deserialise direction: " + dir.toString());
   }
+
+  public static isMatchingList(a: Vec[], b: Vec[]): boolean {
+    if (a.length !== b.length) {
+      return false;
+    }
+
+    for (const p of a) {
+      if (!b.find((v) => p.equalsv(v))) {
+        return false;
+      }
+    }
+
+    return true;
+  }
 }

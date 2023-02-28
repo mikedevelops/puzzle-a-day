@@ -23,7 +23,7 @@ export const DEBUG_STATE = false;
 export const DEBUG_CAMERA = false;
 export const DEBUG_RESOURCES = false;
 export const DEBUG_SPRITES = false;
-export const DEBUG_GRID = true;
+export const DEBUG_GRID = false;
 export const DEBUG_DISPLAY_OBJS = false;
 export const DEBUG_COLLIDERS = true;
 export const DEBUG_COLLISION = false;
@@ -33,5 +33,6 @@ export const PAUSE = false;
 // GAME SPECIFIC
 // TODO: move this to another file
 export const DRAW_PIECES = true;
-export const DEBUG_PIECES = true;
+export const DEBUG_BOARD = false;
+export const DEBUG_PIECES = false;
 export const DEBUG_PIECE_MANAGER = true;

@@ -59,12 +59,15 @@ class GameState {
     const state: SerialisedGameState = JSON.parse(serialisedState);
 
     for (const p of state.pieces) {
+      const anchor = Vec.from(p.anchor);
       const piece = pieceFactory.get(p.name)!(
         vec(),
         Vec.deserialiseDirection(Vec.from(p.direction)),
-        p.anchor
+        Vec.from(p.anchor)
       );
       PieceManager.addPieceToGrid(piece, Vec.from(p.localPos));
     }
+
+    console.log("loaded scene!", state);
   }
 }

@@ -2,7 +2,7 @@ import { createId } from "../engine/id/id";
 import { Direction, vec, Vec } from "../engine/units/vec";
 import { Color, SerialisedColor } from "../engine/color";
 import { renderer } from "../engine/global";
-import { DEBUG_PIECES, DRAW_PIECES, GRID_UNIT } from "../engine/settings";
+import { DEBUG_PIECES, DRAW_PIECES } from "../engine/settings";
 import { PieceManager } from "./global";
 import * as matrix from "../engine/units/matrix";
 import { Axis } from "../engine/units/matrix";
@@ -71,12 +71,7 @@ export interface SerialisedPiece {
 
 export class Piece extends SpriteObject {
   private anchor = vec();
-
   private needsUpdate = false;
-
-  getName(): string {
-    return `${this.id}_PIECE`;
-  }
 
   constructor(
     private name: PieceName,
@@ -92,12 +87,11 @@ export class Piece extends SpriteObject {
     this.setAnchor(anchor);
   }
 
+  public getName(): string {
+    return `${this.id}_PIECE`;
+  }
+
   public setPos(worldPos: Vec): void {
-    console.log(
-      "set pos",
-      worldPos,
-      this.getGrid().worldToLocalUnsafe(worldPos)
-    );
     if (worldPos.equalsv(this.pos)) {
       console.warn("skipping piece pos update");
       return;
@@ -144,6 +138,15 @@ export class Piece extends SpriteObject {
         this.shape = matrix.inverse(this.shape, Axis.Y);
         return;
     }
+  }
+
+  public getLocalPos(): Vec {
+    const grid = this.getGrid();
+    const pos = grid.worldToLocalSnap(this.pos);
+    if (!pos) {
+      throw new Error("Piece not on grid!");
+    }
+    return pos.local.addv(this.anchor);
   }
 
   public getNodes(): Vec[] {
@@ -248,7 +251,10 @@ export class Piece extends SpriteObject {
 
   public serialise(): SerialisedPiece {
     return {
-      localPos: this.getGrid().worldToLocalUnsafe(this.pos),
+      // TODO: would be nicer if we didn't have to explicitly add the anchor here,
+      //  can we make the relationship between the pos and anchor implicit? Perhaps
+      //  behind a getLocalPos() interface?
+      localPos: this.getLocalPos(),
       shape: this.serialiseShape(),
       direction: this.serialiseDirection(),
       color: this.color.serialise(),

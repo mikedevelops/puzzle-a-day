@@ -70,6 +70,10 @@ class Cursor extends DisplayObject {
 
         this.remove(piece);
         PieceManager.addPieceToGrid(piece, cursorPos.local);
+
+        if (PieceManager.isPuzzleComplete()) {
+          alert("WELL DONE");
+        }
       } else {
         const pieceOnGrid = PieceManager.getPieceAt(this.pos);
         if (pieceOnGrid) {

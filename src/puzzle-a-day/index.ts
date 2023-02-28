@@ -22,15 +22,39 @@ startRuntime(
   async (scene) => {
     await sprites.loadSheet("puzzle", sheet);
     PieceManager.start(scene.grid);
-    PieceManager.addPieceToGrid(pieceFactory.get(PieceName.Tee)!(), vec(6, 10));
-    // PieceManager.addPieceToGrid(piece2, vec(5, 13));
-    // PieceManager.addPieceToGrid(piece3, vec(7, 13));
-    // PieceManager.addPieceToGrid(piece4, vec(10, 13));
-    // PieceManager.addPieceToGrid(piece5, vec(10, 9));
-    // PieceManager.addPieceToGrid(piece6, vec(7, 9));
-    // PieceManager.addPieceToGrid(piece7, vec(2, 9));
-    // PieceManager.addPieceToGrid(piece8, vec(5, 6));
-    // scene.addGameObject(createBoard(8, 8));
+    PieceManager.addPieceToGrid(pieceFactory.get(PieceName.C)!(), vec(3, 10));
+    // PieceManager.addPieceToGrid(
+    //   pieceFactory.get(PieceName.Lightning)!(),
+    //   vec(6, 10)
+    // );
+    // PieceManager.addPieceToGrid(
+    //   pieceFactory.get(PieceName.GolfClub)!(),
+    //   vec(9, 10)
+    // );
+    // PieceManager.addPieceToGrid(
+    //   pieceFactory.get(PieceName.LessThan)!(),
+    //   vec(12, 10)
+    // );
+    // PieceManager.addPieceToGrid(
+    //   pieceFactory.get(PieceName.Lamppost)!(),
+    //   vec(12, 6)
+    // );
+    // PieceManager.addPieceToGrid(
+    //   pieceFactory.get(PieceName.Brick)!(),
+    //   vec(9, 6)
+    // );
+    // PieceManager.addPieceToGrid(pieceFactory.get(PieceName.Bolt)!(), vec(9, 3));
+    // PieceManager.addPieceToGrid(pieceFactory.get(PieceName.L)!(), vec(12, 2));
+
+    PieceManager.addBoardToGrid(
+      createBoard(
+        7,
+        7,
+        [vec(), vec(1, 0), vec(6, 0), vec(6, 1), vec(6, 2), vec(6, 3)],
+        [vec(1, 2), vec(4, 4)]
+      ),
+      vec(4, 4)
+    );
   },
   (delta) => {
     GameState.update();
