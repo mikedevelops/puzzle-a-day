@@ -3,9 +3,10 @@ import { createGrid, Grid } from "../grid";
 import { DEBUG_SCENE } from "../settings";
 import { GameObject } from "../objects/gameObject";
 import { vec, Vec } from "../units/vec";
-import { filterDisplayObjects } from "../objects/helperts";
+import { filterDisplayObjects, filterUIObjects } from "../objects/helperts";
 import { DisplayObject } from "../objects/displayObject";
 import { PieceManager } from "../../puzzle-a-day/global";
+import { UIObject } from "../../puzzle-a-day/ui/UIObject";
 
 export function createScene(
   name = "main",
@@ -18,6 +19,8 @@ export function createScene(
 type ObjFactory = () => GameObject;
 
 export class Scene {
+  private ui: Set<UIObject> = new Set();
+
   constructor(public name: string, public grid: Grid) {}
 
   public reset(): void {
@@ -31,8 +34,13 @@ export class Scene {
     PieceManager.reset();
   }
 
-  public addGameObject(obj: GameObject, pos: Vec = vec()): void {
-    this.grid.add(obj, pos);
+  public addGameObject(obj: GameObject, localPos: Vec = vec()): void {
+    this.grid.add(obj, localPos);
+  }
+
+  public addUIObject(obj: UIObject, screenPos: Vec): void {
+    this.ui.add(obj);
+    obj.pos = screenPos;
   }
 
   public fill(factory: ObjFactory): void {
@@ -44,6 +52,10 @@ export class Scene {
   public update(delta: number): void {
     for (const obj of this.grid.children) {
       obj.update(delta);
+    }
+
+    for (const ui of this.ui) {
+      ui.update(delta);
     }
   }
 
@@ -63,6 +75,14 @@ export class Scene {
         dobj.draw();
       }
     }
+
+    for (const ui of this.ui) {
+      const objs = filterUIObjects(ui.getChildrenRecursive());
+      ui.draw();
+      for (const o of objs) {
+        o.draw();
+      }
+    }
   }
 
   public debug(): void {
@@ -74,8 +94,14 @@ export class Scene {
 
     if (DEBUG_SCENE) {
       const children = this.grid.getChildrenRecursive();
+      const ui: UIObject[] = [];
+      for (const u of this.ui) {
+        const c = filterUIObjects(u.getChildrenRecursive());
+        ui.push(u, ...c);
+      }
       debug.print("scene", this.name);
       debug.print("objects", children.length);
+      debug.print("ui", ui.length);
     }
   }
 

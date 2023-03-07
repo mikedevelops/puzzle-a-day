@@ -21,6 +21,19 @@ export interface SpriteData {
   offset: Vec;
 }
 
+interface SpriteFrame {
+  x: number;
+  y: number;
+  w: number;
+  h: number;
+}
+
+export interface SheetData {
+  [index: string]: {
+    frames: SpriteFrame[];
+  };
+}
+
 export function createSpriteManager(): SpriteManager {
   return new SpriteManager();
 }
@@ -40,29 +53,59 @@ export class SpriteManager {
     return this.sprites.get(key) as Sprite;
   }
 
-  public async loadSheet(prefix: string, sheetPath: string): Promise<void> {
-    await this.sliceSheet(prefix, sheetPath);
+  public async loadSheet(
+    prefix: string,
+    sheetPath: string,
+    sheetData: SheetData
+  ): Promise<void> {
+    await this.sliceSheet(prefix, sheetPath, sheetData);
     console.log("sheet loaded", this.sprites);
   }
 
-  private async sliceSheet(prefix: string, sheetPath: string): Promise<void> {
+  private applyScale(frame: SpriteFrame): SpriteFrame {
+    return {
+      x: frame.x * SPRITE_SCALE,
+      y: frame.y * SPRITE_SCALE,
+      w: frame.w * SPRITE_SCALE,
+      h: frame.h * SPRITE_SCALE,
+    };
+  }
+
+  private async sliceSheet(
+    prefix: string,
+    sheetPath: string,
+    sheetData: SheetData
+  ): Promise<void> {
     const sheet = await this.loadAsset("sheet", sheetPath);
 
-    const unit = SPRITE_SIZE * SPRITE_SCALE;
-    // TODO: this is all hardcoded, use sprite meta, eventually, also this isn't engine code...
-    this.sliceSprite(sheet, rect(0, 0, unit * 2.5, unit * 2), prefix);
-    this.sliceSprite(sheet, rect(0, unit * 2, unit * 2, unit * 2), prefix);
-    this.sliceSprite(sheet, rect(0, unit * 4, unit * 2.5, unit * 2), prefix);
-    this.sliceSprite(sheet, rect(0, unit * 6, unit * 2, unit * 2), prefix);
-    this.sliceSprite(sheet, rect(0, unit * 8, unit * 2, unit * 2), prefix);
-    this.sliceSprite(sheet, rect(0, unit * 10, unit * 2.5, unit * 2), prefix);
-    this.sliceSprite(sheet, rect(0, unit * 12, unit * 2.5, unit * 2), prefix);
-    this.sliceSprite(sheet, rect(0, unit * 14, unit * 3, unit * 2), prefix);
-    this.sliceSprite(
-      sheet,
-      rect(unit * 3, unit * 1.5, unit * 6.5, unit * 3.5),
-      prefix
-    );
+    for (const key in sheetData) {
+      const sprite = sheetData[key];
+      for (let i = 0; i < sprite.frames.length; i++) {
+        const frame = this.applyScale(sprite.frames[i]);
+        this.sliceSprite(
+          sheet,
+          rect(frame.x, frame.y, frame.w, frame.h),
+          key,
+          i
+        );
+      }
+    }
+
+    // const unit = SPRITE_SIZE * SPRITE_SCALE;
+    // // TODO: this is all hardcoded, use sprite meta, eventually, also this isn't engine code...
+    // this.sliceSprite(sheet, rect(0, 0, unit * 2.5, unit * 2), prefix);
+    // this.sliceSprite(sheet, rect(0, unit * 2, unit * 2, unit * 2), prefix);
+    // this.sliceSprite(sheet, rect(0, unit * 4, unit * 2.5, unit * 2), prefix);
+    // this.sliceSprite(sheet, rect(0, unit * 6, unit * 2, unit * 2), prefix);
+    // this.sliceSprite(sheet, rect(0, unit * 8, unit * 2, unit * 2), prefix);
+    // this.sliceSprite(sheet, rect(0, unit * 10, unit * 2.5, unit * 2), prefix);
+    // this.sliceSprite(sheet, rect(0, unit * 12, unit * 2.5, unit * 2), prefix);
+    // this.sliceSprite(sheet, rect(0, unit * 14, unit * 3, unit * 2), prefix);
+    // this.sliceSprite(
+    //   sheet,
+    //   rect(unit * 3, unit * 1.5, unit * 6.5, unit * 3.5),
+    //   prefix
+    // );
     // this.sliceSprite(sheet, rect(unit, 0, unit * 1.5, unit), prefix);
     // this.sliceSprite(sheet, rect(unit * 3, 0, unit * 1.5, unit), prefix);
     // this.sliceSprite(sheet, rect(unit * 5, 0, unit * 2, unit), prefix);
@@ -76,9 +119,10 @@ export class SpriteManager {
   private sliceSprite(
     sheet: CanvasRenderingContext2D,
     rect: Rect,
-    prefix: string
+    prefix: string,
+    suffix = spriteId++
   ) {
-    const name = `${prefix}_${spriteId++}`;
+    const name = `${prefix}_${suffix}`;
     const w = rect.width;
     const h = rect.height;
     const cvs = createCanvas(w, h, { willReadFrequently: true });

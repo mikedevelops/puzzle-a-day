@@ -44,4 +44,8 @@ export class Rect {
     const n = this.pos.addv(p);
     return rect(n.x, n.y, this.width, this.height);
   }
+
+  public static getRect(o: { pos: Vec; width: number; height: number }): Rect {
+    return new Rect(o.pos.x, o.pos.y, o.width, o.height);
+  }
 }

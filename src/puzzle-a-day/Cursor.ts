@@ -2,7 +2,7 @@ import { DisplayObject } from "../engine/objects/displayObject";
 import { vec } from "../engine/units/vec";
 import { input, renderer } from "../engine/global";
 import { Color } from "../engine/color";
-import { DEFAULT_LAYER } from "../engine/renderer/renderer";
+import { CURSOR_LAYER, DEFAULT_LAYER } from "../engine/renderer/renderer";
 import { KeyInput, PointerState } from "../engine/input/input";
 import { PieceManager } from "./global";
 import { Piece } from "./Piece";
@@ -37,6 +37,8 @@ class Cursor extends DisplayObject {
   }
 
   public update(delta: number): void {
+    super.update(delta);
+
     this.pos = input.pointer.getWorldPos();
     const piece = this.getPiece();
     const cursorPos = PieceManager.getGrid().worldToLocalSnap(this.pos);
@@ -93,14 +95,14 @@ class Cursor extends DisplayObject {
   }
 
   public draw(): void {
-    renderer.fillRect(this.pos, 10, 10, Color.black(), vec(), DEFAULT_LAYER);
+    renderer.fillRect(this.pos, 10, 10, Color.black(), vec(), CURSOR_LAYER);
     renderer.fillRect(
       this.pos.add(2, 2),
       6,
       6,
       Color.white(),
       vec(),
-      DEFAULT_LAYER + 1
+      CURSOR_LAYER + 1
     );
   }
 }

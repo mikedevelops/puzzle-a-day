@@ -34,5 +34,5 @@ export const PAUSE = false;
 // TODO: move this to another file
 export const DRAW_PIECES = true;
 export const DEBUG_BOARD = false;
-export const DEBUG_PIECES = false;
+export const DEBUG_PIECES = true;
 export const DEBUG_PIECE_MANAGER = true;

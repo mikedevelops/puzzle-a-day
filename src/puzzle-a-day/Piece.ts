@@ -6,9 +6,15 @@ import { DEBUG_PIECES, DRAW_PIECES } from "../engine/settings";
 import { PieceManager } from "./global";
 import * as matrix from "../engine/units/matrix";
 import { Axis } from "../engine/units/matrix";
-import { BACKGROUND_LAYER, DEBUG_LAYER } from "../engine/renderer/renderer";
-import { SpriteObject } from "../engine/objects/spriteObject";
+import {
+  BACKGROUND_LAYER,
+  DEBUG_LAYER,
+  DEFAULT_LAYER,
+} from "../engine/renderer/renderer";
+import { Sprite, SpriteObject } from "../engine/objects/spriteObject";
 import { PieceName } from "./pieces/piece-factory";
+import { createRotation, Rotation } from "../engine/transforms/rotation";
+import { wrap } from "../engine/maths";
 
 const id = createId();
 
@@ -52,7 +58,7 @@ export function createPiece(
   grid: string,
   anchor: Vec,
   color: Color,
-  sprite: string,
+  sprite: Sprite,
   offset = vec(),
   dir = Direction.North,
   pos = vec()
@@ -72,6 +78,8 @@ export interface SerialisedPiece {
 export class Piece extends SpriteObject {
   private anchor = vec();
   private needsUpdate = false;
+  private rotation = 0;
+  private spriteFrameIndex = 0;
 
   constructor(
     private name: PieceName,
@@ -80,7 +88,7 @@ export class Piece extends SpriteObject {
     private color: Color,
     public direction: Direction = Direction.North,
     anchor = vec(0, 0),
-    sprite: string,
+    sprite: Sprite,
     offset: Vec
   ) {
     super(id(), pos, sprite, offset);
@@ -106,24 +114,34 @@ export class Piece extends SpriteObject {
   }
 
   public rotate(): void {
+    const grid = this.getGrid();
     this.needsUpdate = true;
     const transposed = matrix.transpose(this.shape);
     this.shape = matrix.flipVertically(transposed);
+    this.rotation = wrap(this.rotation + 1, 0, 3);
 
     switch (this.direction) {
       case Direction.North:
         this.direction = Direction.East;
+        this.offset = vec(-grid.size * 2, -grid.size * 2);
         break;
       case Direction.East:
         this.direction = Direction.South;
+        this.offset = vec(-grid.size * 2, -grid.size);
         break;
       case Direction.South:
         this.direction = Direction.West;
+        this.offset = vec(-grid.size * 3, -grid.size);
         break;
       case Direction.West:
         this.direction = Direction.North;
+        this.offset = vec(-grid.size * 4, -grid.size * 1.5);
         break;
     }
+
+    console.log(this.direction);
+
+    this.sprite = { prefix: this.sprite.prefix, frame: this.rotation };
   }
 
   public flip(): void {
@@ -173,7 +191,7 @@ export class Piece extends SpriteObject {
       return;
     }
 
-    super.draw();
+    super.draw(1, DEFAULT_LAYER);
   }
 
   public setAnchor(pos: Vec): void {

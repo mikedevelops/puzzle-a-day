@@ -1,7 +1,7 @@
 export class SafeMap<T, K> {
   private map: Map<T, K>;
 
-  constructor(entries: [T, K][]) {
+  constructor(entries: [T, K][] = []) {
     this.map = new Map(entries);
   }
 

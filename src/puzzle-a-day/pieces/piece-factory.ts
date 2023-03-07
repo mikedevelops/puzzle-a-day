@@ -5,6 +5,7 @@ import { GRID_UNIT, GRID_WIDTH } from "../../engine/settings";
 
 type PieceFactory = (pos?: Vec, dir?: Direction, anchor?: Vec) => Piece;
 
+// TODO: I don't like this at all, use strings that match the assets
 export enum PieceName {
   Lightning = "lightning",
   C = "c",
@@ -17,6 +18,7 @@ export enum PieceName {
 }
 
 export const pieceFactory = new Map<PieceName, PieceFactory>([
+  /*
   [
     PieceName.C,
     (pos = vec(), dir = Direction.North) =>
@@ -35,6 +37,7 @@ x,x,o
         pos
       ),
   ],
+  */
   [
     PieceName.Lightning,
     (pos = vec(), dir = Direction.North) =>
@@ -48,12 +51,13 @@ o,x,o
     `,
         vec(0, 0),
         Color.white(),
-        "puzzle_1",
+        { prefix: "piece_1", frame: 0 },
         vec(-GRID_UNIT * 3, -GRID_UNIT * 1.5),
         dir,
         pos
       ),
   ],
+  /*
   [
     PieceName.GolfClub,
     (pos = vec(), dir = Direction.North) =>
@@ -145,6 +149,7 @@ x,x,o
         pos
       ),
   ],
+     */
   [
     PieceName.L,
     (pos = vec(), dir = Direction.North) =>
@@ -158,7 +163,7 @@ x,x,o
     `,
         vec(0, 0),
         Color.green(),
-        "puzzle_0",
+        { prefix: "piece_0", frame: 0 },
         vec(-GRID_UNIT * 4, -GRID_UNIT * 1.5),
         dir,
         pos

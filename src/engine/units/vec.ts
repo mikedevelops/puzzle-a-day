@@ -1,3 +1,5 @@
+import { EAST_REF, NORTH_REF, SOUTH_REF, WEST_REF } from "./dir";
+
 export function vec(x = 0, y = 0): Vec {
   return new Vec(x, y);
 }
@@ -17,19 +19,19 @@ export class Vec {
   }
 
   public static north(): Vec {
-    return vec(0, -1);
+    return Vec.from(NORTH_REF);
   }
 
   public static east(): Vec {
-    return vec(1, 0);
+    return Vec.from(EAST_REF);
   }
 
   public static south(): Vec {
-    return vec(0, 1);
+    return Vec.from(SOUTH_REF);
   }
 
   public static west(): Vec {
-    return vec(-1, 0);
+    return Vec.from(WEST_REF);
   }
 
   public toString(fixed = 0): string {

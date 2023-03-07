@@ -1,5 +1,5 @@
 // TODO: this isn't engine code
-import { Events } from "../../town-builder/events/events";
+// import { Events } from "../../town-builder/events/events";
 
 export function createEventManager(): EventManager {
   return new EventManager();
@@ -8,7 +8,7 @@ export function createEventManager(): EventManager {
 export type Handler = (payload: any) => void;
 
 interface FiredEvent {
-  name: Events;
+  name: string;
   fired: number;
 }
 
@@ -52,7 +52,7 @@ class EventManager {
   }
 
   // TODO: can we improve the event string & payload type here?
-  public trigger<T>(event: Events, payload: T): void {
+  public trigger<T>(event: string, payload: T): void {
     const listener = this.listeners.get(event);
     if (!listener || !listener.length) {
       return;

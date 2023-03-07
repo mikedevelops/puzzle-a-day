@@ -47,3 +47,10 @@ export function max(list: number[]): number {
   }
   return m;
 }
+
+export function wrap(n: any, min: any, max: number): number {
+  const range = max - min + 1;
+  const mod = (n - min) % range;
+  const pMod = mod < 0 ? mod + range : mod;
+  return pMod + min;
+}

@@ -11,13 +11,7 @@ export abstract class DisplayObject extends GameObject {
     super(id, pos, stateMachine);
   }
 
-  public draw(): void {
-    // for (const c of this.getChildrenRecursive()) {
-    //   if (c instanceof DisplayObject && c.isEnabled()) {
-    //     c.draw();
-    // }
-    // }
-  }
+  public abstract draw(): void;
 
   public debug(): void {
     super.debug();

@@ -21,9 +21,9 @@ interface DrawCall {
 }
 
 // TODO: layers need to be defined in the game, not the engine
-export const DEBUG_LAYER = 999;
-export const UI_LAYER = 888;
-export const CURSOR_LAYER = 777;
+export const DEBUG_LAYER = 888;
+export const UI_LAYER = 999;
+export const CURSOR_LAYER = 1000;
 export const DEFAULT_LAYER = 666;
 export const BACKGROUND_LAYER = 555;
 
@@ -222,7 +222,8 @@ export class Renderer {
     pos: Vec,
     tint = Color.empty(),
     alpha = 1,
-    layer = DEFAULT_LAYER
+    layer = DEFAULT_LAYER,
+    rotation = 0
   ): void {
     if (!SPRITES_ENABLED) {
       return;
@@ -262,7 +263,14 @@ export class Renderer {
           this.ctx.globalAlpha = alpha;
         }
 
+        this.ctx.save();
+        if (rotation) {
+          // TODO: erm, figure this out
+          this.ctx.translate(400, 0);
+          this.ctx.rotate(rotation);
+        }
         this.ctx.drawImage(cvs, 0, 0, width, height, sp.x, sp.y, width, height);
+        this.ctx.restore();
       },
       y: pos.y,
       z: layer,
@@ -282,7 +290,7 @@ export class Renderer {
       });
     }
 
-    const sortedLayers = [...layers.keys()].sort();
+    const sortedLayers = [...layers.keys()].sort((a, b) => a - b);
 
     for (const layer of sortedLayers) {
       const calls = layers.get(layer)!;
